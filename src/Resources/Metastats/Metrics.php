@@ -24,7 +24,7 @@ class Metrics
         $startTime = rawurlencode($startTime);
         $endTime = rawurlencode($endTime);
 
-        return $this->http->get('/users/current/accounts/' . Path::segment($accountId) . '/historical-trades/{$startTime}/{$endTime}', $query);
+        return $this->http->get('/users/current/accounts/' . Path::segment($accountId) . '/historical-trades/' . $startTime . '/' . $endTime, $query);
     }
 
     /*
