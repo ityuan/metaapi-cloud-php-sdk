@@ -184,3 +184,30 @@ it('tests account replica lifecycle endpoints and encodes path segments', functi
     expect($history[6]['request'])->toHaveSentRequest('DELETE', '/users/current/accounts/account%2Fid/replicas/replica%2Fid');
     expect($history[7]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/replicas/replica%2Fid/increase-reliability');
 });
+
+
+it('encodes provisioning-profile, expert-advisor and region path parameters', function (): void {
+    $history = [];
+    $metaapi = metaApiClientWithHistory([
+        new Response(201, [], '{"id":"demo-id"}'),
+        new Response(200, [], '[]'),
+        new Response(200, [], '{}'),
+        new Response(204),
+        new Response(204),
+        new Response(204),
+    ], $history);
+
+    $metaapi->demoAccounts()->createMT4DemoAccount('profile/id', ['name' => 'Demo']);
+    $metaapi->expertAdvisors()->expertAdvisors('account/id');
+    $metaapi->expertAdvisors()->expertAdvisor('account/id', 'expert/id');
+    $metaapi->expertAdvisors()->updateExpertAdvisor('account/id', 'expert/id', ['name' => 'Updated']);
+    $metaapi->expertAdvisors()->deleteExpertAdvisor('account/id', 'expert/id');
+    $metaapi->quotas()->requestRegionQuotaUpdate('region/id', ['requestedQuotas' => []]);
+
+    expect($history[0]['request'])->toHaveSentRequest('POST', '/users/current/provisioning-profiles/profile%2Fid/mt4-demo-accounts');
+    expect($history[1]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/expert-advisors');
+    expect($history[2]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/expert-advisors/expert%2Fid');
+    expect($history[3]['request'])->toHaveSentRequest('PUT', '/users/current/accounts/account%2Fid/expert-advisors/expert%2Fid');
+    expect($history[4]['request'])->toHaveSentRequest('DELETE', '/users/current/accounts/account%2Fid/expert-advisors/expert%2Fid');
+    expect($history[5]['request'])->toHaveSentRequest('PATCH', '/users/current/regions/region%2Fid/quotas');
+});
