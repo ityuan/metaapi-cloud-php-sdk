@@ -6,19 +6,44 @@ use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Victorycodedev\MetaapiCloudPhpSdk\Exceptions\MetaApiException;
 use Victorycodedev\MetaapiCloudPhpSdk\Responses\ActionResponse;
 
 class Http
 {
+    private const DEFAULT_TIMEOUT = 60.0;
+    private const DEFAULT_CONNECT_TIMEOUT = 10.0;
+
     protected ClientInterface $client;
 
-    public function __construct(protected string $token, protected string $baseUrl, ?ClientInterface $client = null)
-    {
+    private readonly float $timeout;
+    private readonly float $connectTimeout;
+    private readonly bool $applyTimeout;
+    private readonly bool $applyConnectTimeout;
+
+    public function __construct(
+        protected string $token,
+        protected string $baseUrl,
+        ?ClientInterface $client = null,
+        ?float $timeout = null,
+        ?float $connectTimeout = null
+    ) {
+        $this->timeout = $timeout ?? self::DEFAULT_TIMEOUT;
+        $this->connectTimeout = $connectTimeout ?? self::DEFAULT_CONNECT_TIMEOUT;
+        $this->applyTimeout = $client === null || $timeout !== null;
+        $this->applyConnectTimeout = $client === null || $connectTimeout !== null;
+
+        if ($this->timeout < 0 || $this->connectTimeout < 0) {
+            throw new InvalidArgumentException('HTTP timeouts must be zero or greater.');
+        }
+
         $this->client = $client ?? new Client([
-            'base_uri'    => $this->baseUrl,
+            'base_uri' => $this->baseUrl,
             'http_errors' => false,
+            'timeout' => $this->timeout,
+            'connect_timeout' => $this->connectTimeout,
         ]);
     }
 
@@ -55,10 +80,10 @@ class Http
     public function upload(string $uri, string $filePath, string $fieldName = 'file', array $headers = []): array|string|null
     {
         return $this->request('PUT', $uri, [
-            'headers'   => $headers,
+            'headers' => $headers,
             'multipart' => [
                 [
-                    'name'     => $fieldName,
+                    'name' => $fieldName,
                     'contents' => fopen($filePath, 'r'),
                     'filename' => basename($filePath),
                 ],
@@ -67,7 +92,10 @@ class Http
     }
 
     /**
-     *  Send a request to the MetaApi API.
+     * Send a request to the MetaApi API.
+     *
+     * Requests are not retried automatically. In particular, a timeout does
+     * not prove that a create/trade request was not processed by the server.
      */
     public function request(string $verb, string $uri, array $options = []): array|string|null
     {
@@ -86,7 +114,10 @@ class Http
 
         $decoded = json_decode($body, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        // The public return contract intentionally supports arrays, strings and
+        // empty responses. Preserve valid JSON scalars as raw JSON text instead
+        // of returning an int/bool or triggering a return-type error.
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
             return $body;
         }
 
@@ -100,6 +131,7 @@ class Http
     public function requestAction(string $verb, string $uri, array $options = []): ActionResponse
     {
         $options = $this->normalizeOptions($options);
+        $transactionId = $this->headerValue($options['headers'] ?? [], 'transaction-id');
         $response = $this->send($verb, $uri, $options);
 
         if (!$this->isSuccessful($response)) {
@@ -109,7 +141,8 @@ class Http
         return new ActionResponse(
             $this->decodeBody($response),
             $response->getStatusCode(),
-            $response->getHeaders()
+            $response->getHeaders(),
+            $transactionId
         );
     }
 
@@ -126,7 +159,8 @@ class Http
     {
         $body = (string) $response->getBody();
         $decoded = json_decode($body, true);
-        $error = json_last_error() === JSON_ERROR_NONE ? $decoded : $body;
+        $isSupportedErrorValue = is_array($decoded) || is_string($decoded) || $decoded === null;
+        $error = json_last_error() === JSON_ERROR_NONE && $isSupportedErrorValue ? $decoded : $body;
         $message = is_array($error) && isset($error['message']) ? (string) $error['message'] : $body;
         $code = is_array($error) && isset($error['id']) ? (int) $error['id'] : 0;
         $statusCode = $response->getStatusCode();
@@ -138,6 +172,18 @@ class Http
     private function normalizeOptions(array $options): array
     {
         $options['http_errors'] = false;
+
+        // Use safe defaults for the SDK-owned client. When a caller injects a
+        // Guzzle client, preserve its configured defaults unless they explicitly
+        // override a timeout in the Http constructor or request options.
+        if ($this->applyTimeout) {
+            $options['timeout'] ??= $this->timeout;
+        }
+
+        if ($this->applyConnectTimeout) {
+            $options['connect_timeout'] ??= $this->connectTimeout;
+        }
+
         $options['headers'] = array_merge(
             $this->defaultHeaders($options),
             $options['headers'] ?? []
@@ -227,10 +273,25 @@ class Http
 
         $decoded = json_decode($body, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return $body;
+        return json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+            ? $decoded
+            : $body;
+    }
+
+    private function headerValue(array $headers, string $name): ?string
+    {
+        foreach ($headers as $headerName => $value) {
+            if (strcasecmp((string) $headerName, $name) !== 0) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $value = $value[0] ?? null;
+            }
+
+            return is_string($value) || is_numeric($value) ? (string) $value : null;
         }
 
-        return $decoded;
+        return null;
     }
 }

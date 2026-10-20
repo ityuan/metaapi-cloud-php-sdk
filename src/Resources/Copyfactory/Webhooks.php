@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\Copyfactory;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 
 class Webhooks
 {
@@ -14,21 +15,26 @@ class Webhooks
 
     public function list(string $strategyId, array $query = []): array|string|null
     {
-        return $this->http->get("/{$this->configUrl}/strategies/{$strategyId}/webhooks", $query);
+        return $this->http->get("/{$this->configUrl}/strategies/" . Path::segment($strategyId) . '/webhooks', $query);
     }
 
     public function create(string $strategyId, array $data): array|string|null
     {
-        return $this->http->post("/{$this->configUrl}/strategies/{$strategyId}/webhooks", $data);
+        return $this->http->post("/{$this->configUrl}/strategies/" . Path::segment($strategyId) . '/webhooks', $data);
     }
 
     public function update(string $strategyId, string $webhookId, array $data): array|string|null
     {
-        return $this->http->patch("/{$this->configUrl}/strategies/{$strategyId}/webhooks/{$webhookId}", $data);
+        return $this->http->patch(
+            "/{$this->configUrl}/strategies/" . Path::segment($strategyId) . '/webhooks/' . Path::segment($webhookId),
+            $data
+        );
     }
 
     public function remove(string $strategyId, string $webhookId): array|string|null
     {
-        return $this->http->delete("/{$this->configUrl}/strategies/{$strategyId}/webhooks/{$webhookId}");
+        return $this->http->delete(
+            "/{$this->configUrl}/strategies/" . Path::segment($strategyId) . '/webhooks/' . Path::segment($webhookId)
+        );
     }
 }
