@@ -17,7 +17,7 @@ A modern PHP SDK for MetaApi services.
 - MT Manager API
 - Risk Management API
 
-Real-time streaming/WebSocket support is planned for a future version.
+Streaming and RPC are designed but not implemented yet. See [the Streaming and RPC design](docs/streaming-rpc-design.md) before treating these capabilities as available.
 
 ## Requirements
 
@@ -95,6 +95,8 @@ $risk = $metaapi->riskManagement(
 - [Error Handling](docs/error-handling.md)
 - [Custom HTTP Client](docs/custom-http-client.md)
 - [Roadmap](docs/roadmap.md)
+- [Real REST integration validation](docs/rest-validation.md)
+- [Streaming and RPC architecture design](docs/streaming-rpc-design.md)
 
 ## Testing
 

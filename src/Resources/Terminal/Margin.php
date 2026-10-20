@@ -12,6 +12,6 @@ class Margin
 
     public function calculate(string $accountId, array $order): array|string|null
     {
-        return $this->http->post("/users/current/accounts/{$accountId}/calculate-margin", $order);
+        return $this->http->post('/users/current/accounts/' . Path::segment($accountId) . '/calculate-margin', $order);
     }
 }

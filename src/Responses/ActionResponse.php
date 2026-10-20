@@ -7,7 +7,8 @@ class ActionResponse
     public function __construct(
         private readonly array|string|null $body,
         private readonly int $statusCode,
-        private readonly array $headers = []
+        private readonly array $headers = [],
+        private readonly ?string $transactionId = null
     ) {}
 
     public function body(): array|string|null
@@ -18,6 +19,12 @@ class ActionResponse
     public function statusCode(): int
     {
         return $this->statusCode;
+    }
+
+    /** Returns the transaction id used for this action request, when available. */
+    public function transactionId(): ?string
+    {
+        return $this->transactionId;
     }
 
     public function headers(): array

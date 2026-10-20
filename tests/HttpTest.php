@@ -177,3 +177,40 @@ it('wraps transport failures in MetaApiException', function (): void {
 
     $this->fail('Expected MetaApiException to be thrown.');
 });
+
+
+it('returns JSON scalar bodies without violating the declared return type', function (): void {
+    $http = mockHttp([
+        new Response(200, [], '42'),
+        new Response(200, [], 'true'),
+        new Response(200, [], '"plain text"'),
+        new Response(200, ['Retry-After' => '3'], 'false'),
+    ]);
+
+    expect($http->get('/scalar-number'))->toBe('42');
+    expect($http->get('/scalar-boolean'))->toBe('true');
+    expect($http->get('/scalar-string'))->toBe('plain text');
+    expect($http->get('/scalar-with-retry-after'))->toBe('false');
+});
+
+it('configures safe default connect and total request timeouts for the default client', function (): void {
+    $http = new \Victorycodedev\MetaapiCloudPhpSdk\Http('test-token', 'https://example.test');
+    $property = new ReflectionProperty($http, 'client');
+    $client = $property->getValue($http);
+
+    expect($client->getConfig('timeout'))->toBe(30.0);
+    expect($client->getConfig('connect_timeout'))->toBe(10.0);
+});
+
+it('allows explicit timeout overrides for the default client', function (): void {
+    $http = new \Victorycodedev\MetaapiCloudPhpSdk\Http(
+        'test-token',
+        'https://example.test',
+        clientOptions: ['timeout' => 12.0, 'connect_timeout' => 2.0]
+    );
+    $property = new ReflectionProperty($http, 'client');
+    $client = $property->getValue($http);
+
+    expect($client->getConfig('timeout'))->toBe(12.0);
+    expect($client->getConfig('connect_timeout'))->toBe(2.0);
+});

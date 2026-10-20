@@ -125,3 +125,30 @@ it('calculates margin, trades and retrieves CPU credit usage', function (): void
     ]);
     expect($history[3]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account-id/credits');
 });
+
+
+it('encodes account IDs across all terminal REST resource groups', function (): void {
+    $history = [];
+    $terminal = terminalWithHistory([
+        new Response(200, [], '{"balance":100,"equity":100}'),
+        new Response(200, [], '[]'),
+        new Response(200, [], '[]'),
+        new Response(200, [], '{"margin":10}'),
+        new Response(200, [], '{"stringCode":"TRADE_RETCODE_DONE"}'),
+        new Response(200, [], '{"balance":100}'),
+    ], $history);
+
+    $terminal->state()->accountInformation('account/id');
+    $terminal->history()->historyOrdersByTicket('account/id', 'ticket/id');
+    $terminal->marketData()->symbols('account/id');
+    $terminal->margin()->calculate('account/id', ['symbol' => 'EURUSD', 'type' => 'ORDER_TYPE_BUY', 'volume' => 0.1]);
+    $terminal->trading()->trade('account/id', ['actionType' => 'ORDER_TYPE_BUY', 'symbol' => 'EURUSD', 'volume' => 0.01]);
+    $terminal->credits()->usage('account/id');
+
+    expect($history[0]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/account-information');
+    expect($history[1]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/history-orders/ticket/ticket%2Fid');
+    expect($history[2]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/symbols');
+    expect($history[3]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/calculate-margin');
+    expect($history[4]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/trade');
+    expect($history[5]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/credits');
+});

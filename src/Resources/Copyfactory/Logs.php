@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\Copyfactory;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 
 class Logs
 {
@@ -12,21 +13,21 @@ class Logs
 
     public function userLog(string $subscriberId, array $query = []): array|string|null
     {
-        return $this->http->get("/users/current/subscribers/{$subscriberId}/user-log", $query);
+        return $this->http->get('/users/current/subscribers/' . Path::segment($subscriberId) . '/user-log', $query);
     }
 
     public function userLogStream(string $subscriberId, array $query = []): array|string|null
     {
-        return $this->http->get("/users/current/subscribers/{$subscriberId}/user-log/stream", $query);
+        return $this->http->get('/users/current/subscribers/' . Path::segment($subscriberId) . '/user-log/stream', $query);
     }
 
     public function strategyLog(string $strategyId, array $query = []): array|string|null
     {
-        return $this->http->get("/users/current/strategies/{$strategyId}/user-log", $query);
+        return $this->http->get('/users/current/strategies/' . Path::segment($strategyId) . '/user-log', $query);
     }
 
     public function strategyLogStream(string $strategyId, array $query = []): array|string|null
     {
-        return $this->http->get("/users/current/strategies/{$strategyId}/user-log/stream", $query);
+        return $this->http->get('/users/current/strategies/' . Path::segment($strategyId) . '/user-log/stream', $query);
     }
 }

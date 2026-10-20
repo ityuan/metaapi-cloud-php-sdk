@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\Metastats;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 
 class Metrics
 {
@@ -13,7 +14,7 @@ class Metrics
     */
     public function metrics(string $accountId, bool $includeOpenPositions = false): array|string|null
     {
-        return $this->http->get("/users/current/accounts/{$accountId}/metrics", [
+        return $this->http->get('/users/current/accounts/' . Path::segment($accountId) . '/metrics', [
             'includeOpenPositions' => $includeOpenPositions,
         ]);
     }
@@ -23,7 +24,7 @@ class Metrics
         $startTime = rawurlencode($startTime);
         $endTime = rawurlencode($endTime);
 
-        return $this->http->get("/users/current/accounts/{$accountId}/historical-trades/{$startTime}/{$endTime}", $query);
+        return $this->http->get('/users/current/accounts/' . Path::segment($accountId) . '/historical-trades/' . $startTime . '/' . $endTime, $query);
     }
 
     /*
@@ -31,11 +32,11 @@ class Metrics
     */
     public function openTrades(string $accountId): array|string|null
     {
-        return $this->http->get("/users/current/accounts/{$accountId}/open-trades");
+        return $this->http->get('/users/current/accounts/' . Path::segment($accountId) . '/open-trades');
     }
 
     public function resetMetrics(string $accountId): array|string|null
     {
-        return $this->http->delete("/users/current/accounts/{$accountId}");
+        return $this->http->delete('/users/current/accounts/' . Path::segment($accountId));
     }
 }

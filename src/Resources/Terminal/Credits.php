@@ -12,6 +12,6 @@ class Credits
 
     public function usage(string $accountId): array|string|null
     {
-        return $this->http->get("/users/current/accounts/{$accountId}/credits");
+        return $this->http->get('/users/current/accounts/' . Path::segment($accountId) . '/credits');
     }
 }
