@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\AccountManagement;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 use Victorycodedev\MetaapiCloudPhpSdk\Responses\ActionResponse;
 
 class DemoAccount
@@ -12,7 +13,7 @@ class DemoAccount
     public function createMT4DemoAccount(string $profileId, array $data, ?string $transactionId = null): ActionResponse
     {
         return $this->http->postAction(
-            "/users/current/provisioning-profiles/{$profileId}/mt4-demo-accounts",
+            '/users/current/provisioning-profiles/' . Path::segment($profileId) . '/mt4-demo-accounts',
             $data,
             $this->transactionHeader($transactionId)
         );
@@ -21,7 +22,7 @@ class DemoAccount
     public function createMT5DemoAccount(string $profileId, array $data, ?string $transactionId = null): ActionResponse
     {
         return $this->http->postAction(
-            "/users/current/provisioning-profiles/{$profileId}/mt5-demo-accounts",
+            '/users/current/provisioning-profiles/' . Path::segment($profileId) . '/mt5-demo-accounts',
             $data,
             $this->transactionHeader($transactionId)
         );
