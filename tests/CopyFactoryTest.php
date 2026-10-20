@@ -249,3 +249,33 @@ it('tests strategy and subscriber configuration CRUD endpoints', function (): vo
     expect($history[7]['request'])->toHaveSentRequest('DELETE', '/users/current/configuration/subscribers/subscriber%2Fid');
     expect($history[8]['request'])->toHaveSentRequest('DELETE', '/users/current/configuration/subscribers/subscriber%2Fid/subscriptions/strategy%2Fid');
 });
+
+
+it('encodes identifiers in CopyFactory history, trading and log routes', function (): void {
+    $history = [];
+    $copyFactory = copyFactoryWithHistory([
+        new Response(200, [], '[]'),
+        new Response(200, [], '[]'),
+        new Response(200, [], '[]'),
+        new Response(200, [], '[]'),
+        new Response(204),
+        new Response(200, [], '[]'),
+        new Response(200, [], '[]'),
+    ], $history);
+
+    $copyFactory->history()->strategyTransactionsStream('strategy/id');
+    $copyFactory->history()->subscriberTransactionsStream('subscriber/id');
+    $copyFactory->trading()->signals('subscriber/id');
+    $copyFactory->trading()->externalSignals('strategy/id');
+    $copyFactory->trading()->updateExternalSignal('strategy/id', 'signal/id', ['name' => 'test']);
+    $copyFactory->logs()->userLog('subscriber/id');
+    $copyFactory->logs()->strategyLog('strategy/id');
+
+    expect($history[0]['request'])->toHaveSentRequest('GET', '/users/current/strategies/strategy%2Fid/transactions/stream');
+    expect($history[1]['request'])->toHaveSentRequest('GET', '/users/current/subscribers/subscriber%2Fid/transactions/stream');
+    expect($history[2]['request'])->toHaveSentRequest('GET', '/users/current/subscribers/subscriber%2Fid/signals');
+    expect($history[3]['request'])->toHaveSentRequest('GET', '/users/current/strategies/strategy%2Fid/external-signals');
+    expect($history[4]['request'])->toHaveSentRequest('PUT', '/users/current/strategies/strategy%2Fid/external-signals/signal%2Fid');
+    expect($history[5]['request'])->toHaveSentRequest('GET', '/users/current/subscribers/subscriber%2Fid/user-log');
+    expect($history[6]['request'])->toHaveSentRequest('GET', '/users/current/strategies/strategy%2Fid/user-log');
+});
