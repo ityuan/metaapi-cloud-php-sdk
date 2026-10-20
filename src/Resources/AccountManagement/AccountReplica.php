@@ -22,10 +22,13 @@ class AccountReplica
 
     public function createReplica(string $accountId, array $data, ?string $transactionId = null): ActionResponse
     {
+        $transactionId ??= bin2hex(random_bytes(16));
+
         return $this->http->postAction(
             '/users/current/accounts/' . Path::segment($accountId) . '/replicas',
             $data,
-            $this->transactionHeader($transactionId)
+            $this->transactionHeader($transactionId),
+            transactionId: $transactionId
         );
     }
 

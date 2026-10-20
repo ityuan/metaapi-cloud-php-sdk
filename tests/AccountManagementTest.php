@@ -93,6 +93,7 @@ it('creates account replicas', function (): void {
 
     expect($response)->toBeInstanceOf(ActionResponse::class);
     expect($response->isCreated())->toBeTrue();
+    expect($response->transactionId())->toBe('transaction-id');
     expect($response->id())->toBe('replica-id');
     expect($history[0]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account-id/replicas');
     expect($history[0]['request']->getHeaderLine('transaction-id'))->toBe('transaction-id');
@@ -102,9 +103,10 @@ it('auto-generates transaction id for replica create when not provided', functio
     $history = [];
     $metaapi = metaApiClientWithHistory([new Response(201, [], '{}')], $history);
 
-    $metaapi->accountReplicas()->createReplica('account-id', ['magic' => 123456]);
+    $response = $metaapi->accountReplicas()->createReplica('account-id', ['magic' => 123456]);
 
     $transactionId = $history[0]['request']->getHeaderLine('transaction-id');
+    expect($response->transactionId())->toBe($transactionId);
     expect($transactionId)->not->toBeEmpty();
     expect(strlen($transactionId))->toBe(32);
     expect(ctype_xdigit($transactionId))->toBeTrue();

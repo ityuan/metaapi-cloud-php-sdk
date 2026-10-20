@@ -11,7 +11,7 @@ Method: static comparison of repository source/tests against public MetaApi endp
 - **Partial**: a feature family has some implementation, but its full official endpoint/parameter coverage is not yet confirmed.
 - **Not implemented**: no corresponding SDK implementation was found in the inspected source tree.
 
-The tests currently use Guzzle mock responses. Tested does not imply live-account integration testing.
+The tests currently use Guzzle mock responses. Tested does not imply live-account integration testing. The tests added on this branch have not yet been executed in a PHP/Composer test environment; their presence is not a claim that they passed.
 
 ## Official sources checked
 
@@ -86,6 +86,10 @@ Where an endpoint-specific official page is not linked, the row is an implementa
 | Path parameter encoding | Shared Resources/Path::segment() is used by account, replica, provisioning profile, CopyFactory configuration and webhook paths. | Account, replica, provisioning and CopyFactory tests |
 | JSON scalar type safety | JSON scalar bodies no longer leak bool/int/null values through array|string|null return signatures; Retry-After is only appended to array bodies. | tests/HttpTest.php |
 | Automatic retries | No automatic retries are performed; side-effecting create/trade requests must not be resent blindly after transport failures. | docs/error-handling.md |
+
+## Test execution status
+
+The editing environment did not have Composer installed and could not clone the repository over the network, so `composer test` could not be executed here. Run the full suite on this branch or rely on CI before merging. The source and test changes still require syntax and runtime validation.
 
 ## Remaining audit work
 
