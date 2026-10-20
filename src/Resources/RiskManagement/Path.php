@@ -6,6 +6,6 @@ final class Path
 {
     public static function segment(string|int $value): string
     {
-        return rawurlencode((string) $value);
+        return \Victorycodedev\MetaapiCloudPhpSdk\Resources\Path::segment($value);
     }
 }

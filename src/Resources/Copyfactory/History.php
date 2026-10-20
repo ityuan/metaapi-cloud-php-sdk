@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\Copyfactory;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 
 class History
 {
@@ -22,11 +23,11 @@ class History
 
     public function strategyTransactionsStream(string $strategyId, array $query = []): array|string|null
     {
-        return $this->http->get("/users/current/strategies/{$strategyId}/transactions/stream", $query);
+        return $this->http->get('/users/current/strategies/' . Path::segment($strategyId) . '/transactions/stream', $query);
     }
 
     public function subscriberTransactionsStream(string $subscriberId, array $query = []): array|string|null
     {
-        return $this->http->get("/users/current/subscribers/{$subscriberId}/transactions/stream", $query);
+        return $this->http->get('/users/current/subscribers/' . Path::segment($subscriberId) . '/transactions/stream', $query);
     }
 }

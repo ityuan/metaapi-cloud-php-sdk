@@ -10,7 +10,7 @@ class Trading
 
     public function trade(string $accountId, array $trade): array|string|null
     {
-        return $this->http->post("/users/current/accounts/{$accountId}/trade", $trade);
+        return $this->http->post('/users/current/accounts/' . Path::segment($accountId) . '/trade', $trade);
     }
 
     public function createMarketBuyOrder(string $accountId, string $symbol, float $volume, ?float $stopLoss = null, ?float $takeProfit = null, array $options = []): array|string|null

@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\AccountManagement;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 
 class Quota
 {
@@ -20,6 +21,6 @@ class Quota
 
     public function requestRegionQuotaUpdate(string $region, array $data): array|string|null
     {
-        return $this->http->patch("/users/current/regions/{$region}/quotas", $data);
+        return $this->http->patch('/users/current/regions/' . Path::segment($region) . '/quotas', $data);
     }
 }

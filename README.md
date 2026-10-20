@@ -95,6 +95,7 @@ $risk = $metaapi->riskManagement(
 - [Error Handling](docs/error-handling.md)
 - [Custom HTTP Client](docs/custom-http-client.md)
 - [Roadmap](docs/roadmap.md)
+- [MetaApi API Coverage Baseline](docs/api-coverage.md)
 
 ## Testing
 

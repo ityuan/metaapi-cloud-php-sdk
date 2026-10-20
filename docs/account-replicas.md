@@ -15,7 +15,7 @@ if ($response->shouldRetry()) {
 }
 ```
 
-A transaction ID is auto-generated. Pass your own `transactionId` to retry an accepted request.
+A transaction ID is auto-generated and returned by `$response->transactionId()`. If MetaApi responds with `202 Accepted`, keep the original payload and reuse the same transaction ID for the official follow-up request after `Retry-After`; do not replay the operation with a new ID. The SDK does not automatically retry requests.
 
 Available methods:
 

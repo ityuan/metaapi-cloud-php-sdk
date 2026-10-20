@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\Copyfactory;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 
 class Configuration
 {
@@ -27,8 +28,8 @@ class Configuration
     {
         return $this->http->get("/{$this->configUrl}/strategies", [
             'includeRemoved' => $includeRemoved,
-            'limit'          => $limit,
-            'offset'         => $offset,
+            'limit' => $limit,
+            'offset' => $offset,
         ]);
     }
 
@@ -38,8 +39,8 @@ class Configuration
             "/{$this->configUrl}/strategies",
             [
                 'includeRemoved' => $includeRemoved,
-                'limit'          => $limit,
-                'offset'         => $offset,
+                'limit' => $limit,
+                'offset' => $offset,
             ],
             ['api-version' => '2']
         );
@@ -50,7 +51,7 @@ class Configuration
     */
     public function strategy(string $strategyId): array|string|null
     {
-        return $this->http->get("/{$this->configUrl}/strategies/{$strategyId}");
+        return $this->http->get("/{$this->configUrl}/strategies/" . Path::segment($strategyId));
     }
 
     /*
@@ -58,7 +59,7 @@ class Configuration
     */
     public function updateStrategy(string $strategyId, array $data): array|string|null
     {
-        return $this->http->put("/{$this->configUrl}/strategies/{$strategyId}", $data);
+        return $this->http->put("/{$this->configUrl}/strategies/" . Path::segment($strategyId), $data);
     }
 
     /*
@@ -66,7 +67,7 @@ class Configuration
     */
     public function removeStrategy(string $strategyId): array|string|null
     {
-        return $this->http->delete("/{$this->configUrl}/strategies/{$strategyId}");
+        return $this->http->delete("/{$this->configUrl}/strategies/" . Path::segment($strategyId));
     }
 
     public function portfolioStrategies(bool $includeRemoved = false, int $limit = 1000, int $offset = 0, ?int $apiVersion = null): array|string|null
@@ -75,8 +76,8 @@ class Configuration
             "/{$this->configUrl}/portfolio-strategies",
             [
                 'includeRemoved' => $includeRemoved,
-                'limit'          => $limit,
-                'offset'         => $offset,
+                'limit' => $limit,
+                'offset' => $offset,
             ],
             $apiVersion ? ['api-version' => (string) $apiVersion] : []
         );
@@ -84,23 +85,23 @@ class Configuration
 
     public function portfolioStrategy(string $portfolioId): array|string|null
     {
-        return $this->http->get("/{$this->configUrl}/portfolio-strategies/{$portfolioId}");
+        return $this->http->get("/{$this->configUrl}/portfolio-strategies/" . Path::segment($portfolioId));
     }
 
     public function updatePortfolioStrategy(string $portfolioId, array $data): array|string|null
     {
-        return $this->http->put("/{$this->configUrl}/portfolio-strategies/{$portfolioId}", $data);
+        return $this->http->put("/{$this->configUrl}/portfolio-strategies/" . Path::segment($portfolioId), $data);
     }
 
     public function removePortfolioStrategy(string $portfolioId, array $closeInstructions = []): array|string|null
     {
-        return $this->http->delete("/{$this->configUrl}/portfolio-strategies/{$portfolioId}", payload: $closeInstructions);
+        return $this->http->delete("/{$this->configUrl}/portfolio-strategies/" . Path::segment($portfolioId), payload: $closeInstructions);
     }
 
     public function removePortfolioStrategyMember(string $portfolioId, string $strategyId, array $closeInstructions = []): array|string|null
     {
         return $this->http->delete(
-            "/{$this->configUrl}/portfolio-strategies/{$portfolioId}/members/{$strategyId}",
+            "/{$this->configUrl}/portfolio-strategies/" . Path::segment($portfolioId) . '/members/' . Path::segment($strategyId),
             payload: $closeInstructions
         );
     }
@@ -112,8 +113,8 @@ class Configuration
     {
         return $this->http->get("/{$this->configUrl}/subscribers", [
             'includeRemoved' => $includeRemoved,
-            'limit'          => $limit,
-            'offset'         => $offset,
+            'limit' => $limit,
+            'offset' => $offset,
         ]);
     }
 
@@ -123,8 +124,8 @@ class Configuration
             "/{$this->configUrl}/subscribers",
             [
                 'includeRemoved' => $includeRemoved,
-                'limit'          => $limit,
-                'offset'         => $offset,
+                'limit' => $limit,
+                'offset' => $offset,
             ],
             ['api-version' => '2']
         );
@@ -135,16 +136,15 @@ class Configuration
     */
     public function subscriber(string $subscriberId): array|string|null
     {
-        return $this->http->get("/{$this->configUrl}/subscribers/{$subscriberId}");
+        return $this->http->get("/{$this->configUrl}/subscribers/" . Path::segment($subscriberId));
     }
 
     /*
     *   Updates subscriber configuration
     */
-
     public function updateSubscriber(string $subscriberId, array $data): array|string|null
     {
-        return $this->http->put("/{$this->configUrl}/subscribers/{$subscriberId}", $data);
+        return $this->http->put("/{$this->configUrl}/subscribers/" . Path::segment($subscriberId), $data);
     }
 
     /*
@@ -152,15 +152,16 @@ class Configuration
     */
     public function removeSubscriber(string $subscriberId): array|string|null
     {
-        return $this->http->delete("/{$this->configUrl}/subscribers/{$subscriberId}");
+        return $this->http->delete("/{$this->configUrl}/subscribers/" . Path::segment($subscriberId));
     }
 
     /*
     *   Deletes subscription
     */
-
     public function deleteSubscription(string $subscriberId, string $strategyId): array|string|null
     {
-        return $this->http->delete("/{$this->configUrl}/subscribers/{$subscriberId}/subscriptions/{$strategyId}");
+        return $this->http->delete(
+            "/{$this->configUrl}/subscribers/" . Path::segment($subscriberId) . '/subscriptions/' . Path::segment($strategyId)
+        );
     }
 }
