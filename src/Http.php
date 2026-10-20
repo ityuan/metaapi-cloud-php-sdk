@@ -14,12 +14,18 @@ class Http
 {
     protected ClientInterface $client;
 
-    public function __construct(protected string $token, protected string $baseUrl, ?ClientInterface $client = null)
-    {
-        $this->client = $client ?? new Client([
-            'base_uri'    => $this->baseUrl,
-            'http_errors' => false,
-        ]);
+    public function __construct(
+        protected string $token,
+        protected string $baseUrl,
+        ?ClientInterface $client = null,
+        array $clientOptions = []
+    ) {
+        $this->client = $client ?? new Client(array_merge([
+            'base_uri'        => $this->baseUrl,
+            'http_errors'     => false,
+            'timeout'         => 30.0,
+            'connect_timeout' => 10.0,
+        ], $clientOptions));
     }
 
     public function get(string $uri, array $query = [], array $headers = []): array|string|null
@@ -32,9 +38,9 @@ class Http
         return $this->request('POST', $uri, ['json' => $payload, 'headers' => $headers, 'query' => $query]);
     }
 
-    public function postAction(string $uri, array $payload = [], array $headers = [], array $query = []): ActionResponse
+    public function postAction(string $uri, array $payload = [], array $headers = [], array $query = [], ?string $transactionId = null): ActionResponse
     {
-        return $this->requestAction('POST', $uri, ['json' => $payload, 'headers' => $headers, 'query' => $query]);
+        return $this->requestAction('POST', $uri, ['json' => $payload, 'headers' => $headers, 'query' => $query], $transactionId);
     }
 
     public function put(string $uri, array $payload = [], array $headers = [], array $query = []): array|string|null
@@ -90,6 +96,11 @@ class Http
             return $body;
         }
 
+        // Keep the SDK return contract array|string|null for valid JSON scalars.
+        if (!is_array($decoded)) {
+            return is_string($decoded) ? $decoded : $body;
+        }
+
         if ($response->hasHeader('Retry-After')) {
             $decoded['retryAfter'] = $response->getHeaderLine('Retry-After');
         }
@@ -97,7 +108,7 @@ class Http
         return $decoded;
     }
 
-    public function requestAction(string $verb, string $uri, array $options = []): ActionResponse
+    public function requestAction(string $verb, string $uri, array $options = [], ?string $transactionId = null): ActionResponse
     {
         $options = $this->normalizeOptions($options);
         $response = $this->send($verb, $uri, $options);
@@ -109,7 +120,8 @@ class Http
         return new ActionResponse(
             $this->decodeBody($response),
             $response->getStatusCode(),
-            $response->getHeaders()
+            $response->getHeaders(),
+            $transactionId
         );
     }
 
@@ -231,6 +243,11 @@ class Http
             return $body;
         }
 
-        return $decoded;
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        // Preserve the documented return type for numeric, boolean and null JSON bodies.
+        return is_string($decoded) ? $decoded : $body;
     }
 }

@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\AccountManagement;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 
 class ProvisioningProfile
 {
@@ -21,7 +22,7 @@ class ProvisioningProfile
 
     public function provisioningProfile(string $profileId): array|string|null
     {
-        return $this->http->get("/users/current/provisioning-profiles/{$profileId}");
+        return $this->http->get('/users/current/provisioning-profiles/' . Path::segment($profileId));
     }
 
     public function createProvisioningProfile(array $data): array|string|null
@@ -31,16 +32,16 @@ class ProvisioningProfile
 
     public function uploadProvisioningProfileFile(string $profileId, string $fileName, string $filePath): array|string|null
     {
-        return $this->http->upload("/users/current/provisioning-profiles/{$profileId}/{$fileName}", $filePath);
+        return $this->http->upload('/users/current/provisioning-profiles/' . Path::segment($profileId) . '/' . Path::segment($fileName), $filePath);
     }
 
     public function updateProvisioningProfile(string $profileId, array $data): array|string|null
     {
-        return $this->http->put("/users/current/provisioning-profiles/{$profileId}", $data);
+        return $this->http->put('/users/current/provisioning-profiles/' . Path::segment($profileId), $data);
     }
 
     public function deleteProvisioningProfile(string $profileId): array|string|null
     {
-        return $this->http->delete("/users/current/provisioning-profiles/{$profileId}");
+        return $this->http->delete('/users/current/provisioning-profiles/' . Path::segment($profileId));
     }
 }

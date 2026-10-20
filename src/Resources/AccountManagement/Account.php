@@ -3,6 +3,7 @@
 namespace Victorycodedev\MetaapiCloudPhpSdk\Resources\AccountManagement;
 
 use Victorycodedev\MetaapiCloudPhpSdk\Http;
+use Victorycodedev\MetaapiCloudPhpSdk\Resources\Path;
 use Victorycodedev\MetaapiCloudPhpSdk\Responses\ActionResponse;
 
 class Account
@@ -11,7 +12,7 @@ class Account
 
     public function readById(string $accountId): array|string|null
     {
-        return $this->http->get("/users/current/accounts/{$accountId}");
+        return $this->http->get('/users/current/accounts/' . Path::segment($accountId));
     }
 
     public function accounts(array $filters = [], ?int $apiVersion = null): array|string|null
@@ -21,18 +22,25 @@ class Account
 
     public function create(array $data, ?string $transactionId = null): ActionResponse
     {
-        return $this->http->postAction('/users/current/accounts', $data, $this->transactionHeader($transactionId));
+        $transactionId ??= bin2hex(random_bytes(16));
+
+        return $this->http->postAction(
+            '/users/current/accounts',
+            $data,
+            $this->transactionHeader($transactionId),
+            transactionId: $transactionId
+        );
     }
 
     public function update(string $accountId, array $data): array|string|null
     {
-        return $this->http->put("/users/current/accounts/{$accountId}", $data);
+        return $this->http->put('/users/current/accounts/' . Path::segment($accountId), $data);
     }
 
     public function undeploy(string $accountId, bool $executeForAllReplicas = true): array|string|null
     {
         return $this->http->post(
-            "/users/current/accounts/{$accountId}/undeploy",
+            '/users/current/accounts/' . Path::segment($accountId) . '/undeploy',
             query: ['executeForAllReplicas' => $executeForAllReplicas]
         );
     }
@@ -40,7 +48,7 @@ class Account
     public function deploy(string $accountId, bool $executeForAllReplicas = true): array|string|null
     {
         return $this->http->post(
-            "/users/current/accounts/{$accountId}/deploy",
+            '/users/current/accounts/' . Path::segment($accountId) . '/deploy',
             query: ['executeForAllReplicas' => $executeForAllReplicas]
         );
     }
@@ -48,7 +56,7 @@ class Account
     public function redeploy(string $accountId, bool $executeForAllReplicas = true): array|string|null
     {
         return $this->http->post(
-            "/users/current/accounts/{$accountId}/redeploy",
+            '/users/current/accounts/' . Path::segment($accountId) . '/redeploy',
             query: ['executeForAllReplicas' => $executeForAllReplicas]
         );
     }
@@ -56,24 +64,24 @@ class Account
     public function delete(string $accountId, bool $executeForAllReplicas = false): array|string|null
     {
         return $this->http->delete(
-            "/users/current/accounts/{$accountId}",
+            '/users/current/accounts/' . Path::segment($accountId),
             ['executeForAllReplicas' => $executeForAllReplicas]
         );
     }
 
     public function generateCodeSample(string $accountId, string $platform): array|string|null
     {
-        return $this->http->get("/users/current/accounts/{$accountId}/examples/{$platform}");
+        return $this->http->get('/users/current/accounts/' . Path::segment($accountId) . '/examples/' . Path::segment($platform));
     }
 
     public function enableFeatures(string $accountId, array $data): array|string|null
     {
-        return $this->http->post("/users/current/accounts/{$accountId}/enable-account-features", $data);
+        return $this->http->post('/users/current/accounts/' . Path::segment($accountId) . '/enable-account-features', $data);
     }
 
     public function enableCopyFactoryApi(string $accountId, array $copyFactoryRoles, int $copyFactoryResourceSlots = 1): array|string|null
     {
-        return $this->http->post("/users/current/accounts/{$accountId}/enable-copy-factory-api", [
+        return $this->http->post('/users/current/accounts/' . Path::segment($accountId) . '/enable-copy-factory-api', [
             'copyFactoryRoles'          => $copyFactoryRoles,
             'copyFactoryResourceSlots'  => $copyFactoryResourceSlots,
         ]);
@@ -82,7 +90,7 @@ class Account
     public function createConfigurationLink(string $accountId, ?int $ttlInDays = null): array|string|null
     {
         return $this->http->put(
-            "/users/current/accounts/{$accountId}/configuration-link",
+            '/users/current/accounts/' . Path::segment($accountId) . '/configuration-link',
             query: ['ttlInDays' => $ttlInDays]
         );
     }
