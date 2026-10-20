@@ -212,3 +212,40 @@ it('throws MetaApiException for local copy trading validation errors', function 
         subscriberAccount: ['_id' => 'subscriber-internal-id', 'copyFactoryRoles' => ['SUBSCRIBER']]
     );
 })->throws(MetaApiException::class, 'Account provider-account-id is not a PROVIDER account');
+
+
+it('tests strategy and subscriber configuration CRUD endpoints', function (): void {
+    $history = [];
+    $copyFactory = copyFactoryWithHistory([
+        new Response(200, [], '[]'),
+        new Response(200, [], '{"_id":"strategy/id"}'),
+        new Response(204),
+        new Response(204),
+        new Response(200, [], '[]'),
+        new Response(200, [], '{"_id":"subscriber/id"}'),
+        new Response(204),
+        new Response(204),
+        new Response(204),
+    ], $history);
+
+    $copyFactory->configuration()->strategies(limit: 25, offset: 5);
+    $copyFactory->configuration()->strategy('strategy/id');
+    $copyFactory->configuration()->updateStrategy('strategy/id', ['name' => 'Updated']);
+    $copyFactory->configuration()->removeStrategy('strategy/id');
+    $copyFactory->configuration()->subscribers(limit: 25, offset: 5);
+    $copyFactory->configuration()->subscriber('subscriber/id');
+    $copyFactory->configuration()->updateSubscriber('subscriber/id', ['name' => 'Updated']);
+    $copyFactory->configuration()->removeSubscriber('subscriber/id');
+    $copyFactory->configuration()->deleteSubscription('subscriber/id', 'strategy/id');
+
+    expect($history[0]['request'])->toHaveSentRequest('GET', '/users/current/configuration/strategies');
+    expect($history[0]['request']->getUri()->getQuery())->toContain('limit=25');
+    expect($history[1]['request'])->toHaveSentRequest('GET', '/users/current/configuration/strategies/strategy%2Fid');
+    expect($history[2]['request'])->toHaveSentRequest('PUT', '/users/current/configuration/strategies/strategy%2Fid');
+    expect($history[3]['request'])->toHaveSentRequest('DELETE', '/users/current/configuration/strategies/strategy%2Fid');
+    expect($history[4]['request'])->toHaveSentRequest('GET', '/users/current/configuration/subscribers');
+    expect($history[5]['request'])->toHaveSentRequest('GET', '/users/current/configuration/subscribers/subscriber%2Fid');
+    expect($history[6]['request'])->toHaveSentRequest('PUT', '/users/current/configuration/subscribers/subscriber%2Fid');
+    expect($history[7]['request'])->toHaveSentRequest('DELETE', '/users/current/configuration/subscribers/subscriber%2Fid');
+    expect($history[8]['request'])->toHaveSentRequest('DELETE', '/users/current/configuration/subscribers/subscriber%2Fid/subscriptions/strategy%2Fid');
+});

@@ -123,3 +123,62 @@ it('exposes accepted account replica creation retry metadata', function (): void
     expect($response->id())->toBe('replica-id');
     expect($response->state())->toBe('DRAFT');
 });
+
+
+it('returns the generated account creation transaction id without breaking the request header', function (): void {
+    $history = [];
+    $metaapi = metaApiClientWithHistory([new Response(202, ['Retry-After' => '5'], '{"id":"account-id","state":"DRAFT"}')], $history);
+
+    $response = $metaapi->accounts()->create(['name' => 'Demo']);
+
+    expect($response->transactionId())->toBe($history[0]['request']->getHeaderLine('transaction-id'));
+    expect(strlen((string) $response->transactionId()))->toBe(32);
+    expect($response->isAccepted())->toBeTrue();
+});
+
+it('encodes account path segments and tests lifecycle and configuration-link endpoints', function (): void {
+    $history = [];
+    $metaapi = metaApiClientWithHistory(array_fill(0, 7, new Response(204)), $history);
+
+    $metaapi->accounts()->readById('account/id');
+    $metaapi->accounts()->update('account/id', ['name' => 'Updated']);
+    $metaapi->accounts()->deploy('account/id', false);
+    $metaapi->accounts()->undeploy('account/id', false);
+    $metaapi->accounts()->redeploy('account/id', false);
+    $metaapi->accounts()->generateCodeSample('account/id', 'MQL/5');
+    $metaapi->accounts()->createConfigurationLink('account/id', 7);
+
+    expect($history[0]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid');
+    expect($history[1]['request'])->toHaveSentRequest('PUT', '/users/current/accounts/account%2Fid');
+    expect($history[1]['request']->getBody()->getContents())->toContain('"name":"Updated"');
+    expect($history[2]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/deploy');
+    expect($history[2]['request']->getUri()->getQuery())->toBe('executeForAllReplicas=false');
+    expect($history[3]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/undeploy');
+    expect($history[4]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/redeploy');
+    expect($history[5]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/examples/MQL%2F5');
+    expect($history[6]['request'])->toHaveSentRequest('PUT', '/users/current/accounts/account%2Fid/configuration-link');
+    expect($history[6]['request']->getUri()->getQuery())->toBe('ttlInDays=7');
+});
+
+it('tests account replica lifecycle endpoints and encodes path segments', function (): void {
+    $history = [];
+    $metaapi = metaApiClientWithHistory(array_fill(0, 8, new Response(204)), $history);
+
+    $metaapi->accountReplicas()->replicas('account/id');
+    $metaapi->accountReplicas()->replica('account/id', 'replica/id');
+    $metaapi->accountReplicas()->updateReplica('account/id', 'replica/id', ['region' => 'london']);
+    $metaapi->accountReplicas()->deployReplica('account/id', 'replica/id');
+    $metaapi->accountReplicas()->undeployReplica('account/id', 'replica/id');
+    $metaapi->accountReplicas()->redeployReplica('account/id', 'replica/id');
+    $metaapi->accountReplicas()->deleteReplica('account/id', 'replica/id');
+    $metaapi->accountReplicas()->increaseReplicaReliability('account/id', 'replica/id');
+
+    expect($history[0]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/replicas');
+    expect($history[1]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/replicas/replica%2Fid');
+    expect($history[2]['request'])->toHaveSentRequest('PUT', '/users/current/accounts/account%2Fid/replicas/replica%2Fid');
+    expect($history[3]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/replicas/replica%2Fid/deploy');
+    expect($history[4]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/replicas/replica%2Fid/undeploy');
+    expect($history[5]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/replicas/replica%2Fid/redeploy');
+    expect($history[6]['request'])->toHaveSentRequest('DELETE', '/users/current/accounts/account%2Fid/replicas/replica%2Fid');
+    expect($history[7]['request'])->toHaveSentRequest('POST', '/users/current/accounts/account%2Fid/replicas/replica%2Fid/increase-reliability');
+});
