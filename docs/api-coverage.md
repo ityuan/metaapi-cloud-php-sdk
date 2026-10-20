@@ -83,17 +83,17 @@ Where an endpoint-specific official page is not linked, the row is an implementa
 |---|---|---|
 | Account creation transaction ID | Generated ID is exposed through ActionResponse::transactionId(); existing create($data, $transactionId) signature remains compatible. | tests/AccountManagementTest.php |
 | HTTP timeouts | Default Guzzle client has 30s total timeout and 10s connect timeout; optional client options can override. Injected clients keep their own config. | tests/HttpTest.php |
-| Path parameter encoding | Shared Resources/Path::segment() is used by account, replica, provisioning profile, CopyFactory configuration and webhook paths. | Account, replica, provisioning and CopyFactory tests |
+| Path parameter encoding | Segment encoding is applied across account, replica, provisioning profile, demo account, Expert Advisor, Terminal REST, and CopyFactory configuration/history/trading/log/webhook routes. | Account, Terminal and CopyFactory request tests |
 | JSON scalar type safety | JSON scalar bodies no longer leak bool/int/null values through array|string|null return signatures; Retry-After is only appended to array bodies. | tests/HttpTest.php |
 | Automatic retries | No automatic retries are performed; side-effecting create/trade requests must not be resent blindly after transport failures. | docs/error-handling.md |
 
 ## Test execution status
 
-The editing environment did not have Composer installed and could not clone the repository over the network, so `composer test` could not be executed here. Run the full suite on this branch or rely on CI before merging. The source and test changes still require syntax and runtime validation.
+The editing environment did not have Composer installed, so the local `composer test` command could not be executed. A live, read-only REST harness is available at `tests/integration/rest-smoke.php` and documented in `docs/rest-validation.md`; it has not been run because no token/account credentials were supplied. Run the full unit suite and the opt-in live check before merging. The current branch's CI result must also be inspected and resolved before merge.
 
 ## Remaining audit work
 
 1. Import or enumerate the complete official Swagger/OpenAPI endpoint definitions for each service, including optional query/body parameters and API versions.
 2. Compare every official operation against a concrete SDK method and direct test; mark any missing operation as not implemented only after the official operation is verified.
 3. Add live integration tests in a dedicated MetaApi test account for 202/polling, permissions, rate limits and terminal synchronization.
-4. Review path encoding in all remaining resource classes, not only the P0-focused classes updated here.
+4. Review path encoding in remaining resource classes and add direct request tests for every parameterized route.
