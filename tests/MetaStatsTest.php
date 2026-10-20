@@ -33,3 +33,24 @@ it('exposes the MetaStats metrics resource', function (): void {
 
     expect($stats->metricResource()->openTrades('account-id'))->toBe(['openTrades' => []]);
 });
+
+
+it('encodes account IDs for MetaStats REST endpoints', function (): void {
+    $history = [];
+    $stats = metaStatsWithHistory([
+        new Response(200, [], '{"metrics":[]}'),
+        new Response(200, [], '{"trades":[]}'),
+        new Response(200, [], '{"openTrades":[]}'),
+        new Response(204),
+    ], $history);
+
+    $stats->metrics('account/id');
+    $stats->historicalTrades('account/id', '2020-09-08 22:21:36.000', '2020-09-09 22:21:36.000');
+    $stats->openTrades('account/id');
+    $stats->resetMetrics('account/id');
+
+    expect($history[0]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/metrics');
+    expect($history[1]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/historical-trades/2020-09-08%2022%3A21%3A36.000/2020-09-09%2022%3A21%3A36.000');
+    expect($history[2]['request'])->toHaveSentRequest('GET', '/users/current/accounts/account%2Fid/open-trades');
+    expect($history[3]['request'])->toHaveSentRequest('DELETE', '/users/current/accounts/account%2Fid');
+});
