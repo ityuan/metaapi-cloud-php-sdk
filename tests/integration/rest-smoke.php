@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__, 2) . '/vendor/autoload.php';
-
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Victorycodedev\MetaapiCloudPhpSdk\Exceptions\MetaApiException;
 use Victorycodedev\MetaapiCloudPhpSdk\MetaApiClient;
+
+require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 $token = getenv('METAAPI_AUTH_TOKEN') ?: '';
 $accountId = getenv('METAAPI_ACCOUNT_ID') ?: '';
